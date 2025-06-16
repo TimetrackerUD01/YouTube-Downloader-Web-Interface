@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Free YouTube video downloader with high quality options. Download YouTube videos safely and easily.">
+    <meta name="keywords" content="youtube downloader, video download, free downloader, youtube to mp4">
+    <meta name="author" content="YTDL Web Interface">
+    <title>🎬 YouTube Downloader - Free & Safe</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .url-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .url-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-block;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .video-info {
+            display: none;
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .video-card {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .thumbnail {
+            width: 120px;
+            height: 90px;
+            border-radius: 10px;
+            object-fit: cover;
+        }
+
+        .video-details h3 {
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 1.2em;
+        }
+
+        .video-meta {
+            color: #666;
+            font-size: 0.9em;
+            line-height: 1.4;
+        }
+
+        .formats {
+            margin-top: 20px;
+        }
+
+        .format-group {
+            margin-bottom: 20px;
+        }
+
+        .format-group h4 {
+            color: #333;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: #e9ecef;
+            border-radius: 8px;
+        }
+
+        .format-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .format-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            border: 1px solid #e0e0e0;
+            transition: all 0.3s ease;
+        }
+
+        .format-item:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transform: translateY(-1px);
+        }
+
+        .format-info {
+            flex: 1;
+        }
+
+        .format-quality {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .format-details {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 2px;
+        }
+
+        .download-btn {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+        }
+
+        .error {
+            background: #fff5f5;
+            color: #e53e3e;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #e53e3e;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .success {
+            background: #f0fff4;
+            color: #38a169;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #38a169;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .quick-download {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .quick-btn {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .quick-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+            
+            .video-card {
+                flex-direction: column;
+            }
+            
+            .thumbnail {
+                width: 100%;
+                height: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎬 YouTube Downloader</h1>
+            <p>ดาวน์โหลดวิดีโอและเสียงจาก YouTube ได้ง่ายๆ</p>
+        </div>
+
+        <div class="content">
+            <div class="input-group">
+                <label for="videoUrl">🔗 URL ของวิดีโอ YouTube:</label>
+                <input type="url" id="videoUrl" class="url-input" 
+                       placeholder="https://www.youtube.com/watch?v=..." 
+                       value="https://www.youtube.com/watch?v=dQw4w9WgXcQ">
+            </div>
+
+            <button id="getInfoBtn" class="btn">🔍 ดึงข้อมูลวิดีโอ</button>
+
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <p>กำลังดึงข้อมูลวิดีโอ...</p>
+            </div>
+
+            <div id="error" class="error"></div>
+            <div id="success" class="success"></div>
+
+            <div id="videoInfo" class="video-info">
+                <div class="video-card">
+                    <img id="thumbnail" class="thumbnail" src="" alt="Video thumbnail">
+                    <div class="video-details">
+                        <h3 id="videoTitle"></h3>
+                        <div class="video-meta">
+                            <div>📺 ช่อง: <span id="videoAuthor"></span></div>
+                            <div>⏱️ ความยาว: <span id="videoDuration"></span></div>
+                            <div>👀 ยอดดู: <span id="videoViews"></span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="quick-download">
+                    <button id="quickDownloadHigh" class="quick-btn">⬇️ คุณภาพสูง</button>
+                    <button id="quickDownloadLow" class="quick-btn">⬇️ คุณภาพต่ำ</button>
+                    <button id="quickDownloadAudio" class="quick-btn">🎵 เสียงอย่างเดียว</button>
+                </div>
+
+                <div class="formats">
+                    <div class="format-group">
+                        <h4>🎬 วิดีโอ + เสียง</h4>
+                        <div id="audioVideoFormats" class="format-list"></div>
+                    </div>
+
+                    <div class="format-group">
+                        <h4>🎥 วิดีโออย่างเดียว</h4>
+                        <div id="videoOnlyFormats" class="format-list"></div>
+                    </div>
+
+                    <div class="format-group">
+                        <h4>🎵 เสียงอย่างเดียว</h4>
+                        <div id="audioOnlyFormats" class="format-list"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentVideoData = null;
+
+        // ฟังก์ชันสำหรับแสดง/ซ่อน elements
+        function showElement(id) {
+            document.getElementById(id).style.display = 'block';
+        }
+
+        function hideElement(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+
+        function showError(message) {
+            document.getElementById('error').textContent = message;
+            showElement('error');
+            hideElement('success');
+        }
+
+        function showSuccess(message) {
+            document.getElementById('success').textContent = message;
+            showElement('success');
+            hideElement('error');
+        }
+
+        function formatDuration(seconds) {
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const secs = seconds % 60;
+            
+            if (hours > 0) {
+                return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            }
+            return `${minutes}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function formatNumber(num) {
+            return new Intl.NumberFormat('th-TH').format(num);
+        }
+
+        // ฟังก์ชันดึงข้อมูลวิดีโอ
+        async function getVideoInfo() {
+            const url = document.getElementById('videoUrl').value.trim();
+            
+            if (!url) {
+                showError('กรุณาใส่ URL ของวิดีโอ YouTube');
+                return;
+            }
+
+            hideElement('error');
+            hideElement('success');
+            hideElement('videoInfo');
+            showElement('loading');
+            
+            try {
+                const response = await fetch('/api/video-info', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ url })
+                });
+
+                const data = await response.json();
+                hideElement('loading');
+
+                if (!data.success) {
+                    showError(data.error || 'เกิดข้อผิดพลาดในการดึงข้อมูล');
+                    return;
+                }
+
+                currentVideoData = data;
+                displayVideoInfo(data);
+                showSuccess('ดึงข้อมูลวิดีโอสำเร็จ!');
+
+            } catch (error) {
+                hideElement('loading');
+                showError('เกิดข้อผิดพลาด: ' + error.message);
+            }
+        }
+
+        // ฟังก์ชันแสดงข้อมูลวิดีโอ
+        function displayVideoInfo(data) {
+            const { videoDetails, formats } = data;
+            
+            // แสดงข้อมูลวิดีโอ
+            document.getElementById('thumbnail').src = videoDetails.thumbnail;
+            document.getElementById('videoTitle').textContent = videoDetails.title;
+            document.getElementById('videoAuthor').textContent = videoDetails.author;
+            document.getElementById('videoDuration').textContent = formatDuration(videoDetails.lengthSeconds);
+            document.getElementById('videoViews').textContent = formatNumber(videoDetails.viewCount);
+
+            // แสดง formats
+            displayFormats('audioVideoFormats', formats.audioVideo);
+            displayFormats('videoOnlyFormats', formats.videoOnly);
+            displayFormats('audioOnlyFormats', formats.audioOnly);
+
+            showElement('videoInfo');
+        }
+
+        // ฟังก์ชันแสดง formats
+        function displayFormats(containerId, formats) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+
+            if (formats.length === 0) {
+                container.innerHTML = '<p style="color: #666; padding: 10px;">ไม่มีรูปแบบนี้</p>';
+                return;
+            }
+
+            formats.forEach(format => {
+                const formatDiv = document.createElement('div');
+                formatDiv.className = 'format-item';
+                
+                formatDiv.innerHTML = `
+                    <div class="format-info">
+                        <div class="format-quality">${format.quality}</div>
+                        <div class="format-details">${format.container} • ${format.size}</div>
+                    </div>
+                    <button class="download-btn" onclick="downloadFormat('${format.itag}', '${format.type}')">
+                        ⬇️ ดาวน์โหลด
+                    </button>
+                `;
+                
+                container.appendChild(formatDiv);
+            });
+        }
+
+        // ฟังก์ชันดาวน์โหลด
+        function downloadFormat(itag, type) {
+            const url = document.getElementById('videoUrl').value.trim();
+            const downloadUrl = `/api/download?url=${encodeURIComponent(url)}&itag=${itag}&type=${type}`;
+            
+            showSuccess('เริ่มดาวน์โหลด...');
+            
+            // เปิดหน้าต่างใหม่สำหรับดาวน์โหลด
+            window.open(downloadUrl, '_blank');
+        }
+
+        // ฟังก์ชันดาวน์โหลดด่วน
+        function quickDownload(quality) {
+            const url = document.getElementById('videoUrl').value.trim();
+            let downloadUrl;
+            
+            switch(quality) {
+                case 'high':
+                    downloadUrl = `/api/stream-download?url=${encodeURIComponent(url)}&quality=highest`;
+                    break;
+                case 'low':
+                    downloadUrl = `/api/stream-download?url=${encodeURIComponent(url)}&quality=lowest`;
+                    break;
+                case 'audio':
+                    downloadUrl = `/api/stream-download?url=${encodeURIComponent(url)}&quality=highestaudio`;
+                    break;
+            }
+            
+            showSuccess('เริ่มดาวน์โหลด...');
+            window.open(downloadUrl, '_blank');
+        }
+
+        // Event listeners
+        document.getElementById('getInfoBtn').addEventListener('click', getVideoInfo);
+        document.getElementById('videoUrl').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                getVideoInfo();
+            }
+        });
+
+        document.getElementById('quickDownloadHigh').addEventListener('click', () => quickDownload('high'));
+        document.getElementById('quickDownloadLow').addEventListener('click', () => quickDownload('low'));
+        document.getElementById('quickDownloadAudio').addEventListener('click', () => quickDownload('audio'));
+
+        // เริ่มต้นโหลดข้อมูลตัวอย่าง
+        // getVideoInfo();
+    </script>
+</body>
+</html>
