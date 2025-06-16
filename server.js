@@ -7,6 +7,9 @@ const cors = require('cors');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Set environment variables for security
+process.env.YTDL_NO_UPDATE = 'true';
+
 // Middleware
 app.use(cors());
 app.use(express.json());
@@ -87,12 +90,31 @@ app.post('/api/video-info', async (req, res) => {
         audioOnly: audioOnlyFormats
       }
     });
-
   } catch (error) {
-    console.error('Error:', error.message);
-    res.status(500).json({ 
-      error: error.message,
-      success: false 
+    console.error('❌ Error fetching video info:', error.message);
+    
+    // ส่งข้อความ error ที่เข้าใจง่าย
+    let errorMessage = 'Failed to get video information';
+    let statusCode = 500;
+
+    if (error.message.includes('Video unavailable')) {
+      errorMessage = 'Video is unavailable, private, or deleted';
+      statusCode = 404;
+    } else if (error.message.includes('timeout')) {
+      errorMessage = 'Request timeout - please try again';
+      statusCode = 408;
+    } else if (error.message.includes('Sign in')) {
+      errorMessage = 'This video requires authentication';
+      statusCode = 403;
+    } else if (error.message.includes('age')) {
+      errorMessage = 'Age-restricted content not supported';
+      statusCode = 403;
+    }
+    
+    res.status(statusCode).json({ 
+      success: false,
+      error: errorMessage,
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 });
